@@ -21,7 +21,7 @@ class EchoRequestHandler(ProxyBaseHTTPRequestHandler):
         # resp_lines is a list of messages to send back to the client
         resp_lines = ["Path: " + self.path, "Headers:"]
         # Log for debugging purposes, and also include in the echo response
-        for k, v in sorted(dict(self.headers).items()):
+        for k, v in sorted(self.headers.items()):
             self.logger.info("    %s: %s", k, v)
             resp_lines.append(f"    {k}: {v}")
 
