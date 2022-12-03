@@ -2,8 +2,10 @@
 Shared HTTP server implementation.
 """
 
+import signal
 import socket
 import sys
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from jwt_proxy.logger import get_logger
@@ -38,14 +40,29 @@ def run_server(handler_cls, port: int):
     """
     log = get_logger(run_server)
 
-    log.info("Listening on 0.0.0.0:%d", port)
+    log.info("Starting server on on 0.0.0.0:%d", port)
 
     ThreadingHTTPServer.address_family = socket.AddressFamily.AF_INET
+
     with ThreadingHTTPServer(("0.0.0.0", port), handler_cls) as server:
-        try:
-            server.serve_forever()
-        # TODO listen for signal sent by docker when terminating container
-        except KeyboardInterrupt:
-            log.info("Got ctrl-c, exiting")
-            server.shutdown()
-            sys.exit(0)
+        # Run the server on another thread so that the main thread can handle the shutdown signal.
+        # shutdown_event will be set by the signal handler, and then the main thread will resume and
+        # gracefully shut down.
+        thread = threading.Thread(target=server.serve_forever, daemon=True, name="server-main")
+        shutdown_event = threading.Event()
+
+        def _handler(signum, frame):
+            log.info("Got signal %d (%s), exiting", signum, signal.strsignal(signum))
+            shutdown_event.set()
+
+        signal.signal(signal.SIGINT, _handler)
+        signal.signal(signal.SIGTERM, _handler)
+
+        thread.start()
+
+        log.info("Started server")
+        shutdown_event.wait()
+
+        log.info("Shutting down")
+        server.shutdown()
+        sys.exit(0)

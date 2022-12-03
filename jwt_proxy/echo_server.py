@@ -1,6 +1,7 @@
 """
 Implements an HTTP server which logs all incoming requests and echoes information back to the client.
 """
+import os
 from http import HTTPStatus
 
 from jwt_proxy.http_base import ProxyBaseHTTPRequestHandler, run_server
@@ -45,8 +46,3 @@ class EchoRequestHandler(ProxyBaseHTTPRequestHandler):
 
         self.wfile.write(resp_message)
         self.wfile.flush()
-
-
-if __name__ == "__main__":
-    init_logging()
-    run_server(EchoRequestHandler, 9200)

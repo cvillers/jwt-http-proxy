@@ -1,0 +1,13 @@
+version: "3.7"
+
+services:
+  echo_server:
+    # image: jwt-http-proxy:1
+    build:
+      context: .
+    entrypoint:
+      - /usr/local/bin/python
+      - /app/echo_server.py
+    #network_mode: host  # for debugging
+    ports:
+      - "${ECHO_HTTP_PORT}:${ECHO_HTTP_PORT}"
