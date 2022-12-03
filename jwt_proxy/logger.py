@@ -4,7 +4,7 @@ from typing import Any, Callable, Union
 _FORMAT = "%(asctime)s %(levelname)s [%(thread)5d] [%(name)s] %(message)s"
 
 
-def get_logger(name: Union[str, Callable[[...], Any]]) -> "logging.Logger":
+def get_logger(name: Union[str, Callable[[...], Any]]) -> logging.Logger:
     """
     Get a named logger.
 
@@ -18,5 +18,9 @@ def get_logger(name: Union[str, Callable[[...], Any]]) -> "logging.Logger":
     return logging.getLogger(real_name)
 
 
-def init_logging():
+def init_logging() -> None:
+    """
+    Initialize the logging system with standard configuration.
+    """
+
     logging.basicConfig(format=_FORMAT, level=logging.DEBUG)
