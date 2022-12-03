@@ -6,6 +6,7 @@ import signal
 import socket
 import sys
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from jwt_proxy.logger import get_logger
@@ -46,14 +47,16 @@ def run_server(handler_cls, port: int):
 
     with ThreadingHTTPServer(("0.0.0.0", port), handler_cls) as server:
         # Run the server on another thread so that the main thread can handle the shutdown signal.
-        # shutdown_event will be set by the signal handler, and then the main thread will resume and
+        # running will be set by the signal handler, and then the main thread will resume and
         # gracefully shut down.
         thread = threading.Thread(target=server.serve_forever, daemon=True, name="server-main")
-        shutdown_event = threading.Event()
+
+        running = True
 
         def _handler(signum, frame):
             log.info("Got signal %d (%s), exiting", signum, signal.strsignal(signum))
-            shutdown_event.set()
+            nonlocal running
+            running = False
 
         signal.signal(signal.SIGINT, _handler)
         signal.signal(signal.SIGTERM, _handler)
@@ -61,7 +64,9 @@ def run_server(handler_cls, port: int):
         thread.start()
 
         log.info("Started server")
-        shutdown_event.wait()
+
+        while running:
+            time.sleep(0.01)
 
         log.info("Shutting down")
         server.shutdown()
