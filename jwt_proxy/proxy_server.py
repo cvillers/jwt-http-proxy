@@ -23,6 +23,18 @@ class ProxyRequestHandler(ProxyBaseHTTPRequestHandler):
 
     JWT_TOKEN_HEADER = "x-my-jwt"
 
+    def do_CONNECT(self):
+        """
+        Handler for CONNECT requests which explicitly rejects the request.
+
+        This is needed because the default :class:`BaseHTTPRequestHandler` sends a content response
+        if a method is not implemented at all in this handler, which is not permitted for CONNECT per
+        RFC 7231 section 4.3.6.
+        """
+        self.logger.info("Got CONNECT request for %s", self.path)
+        self.send_response_only(HTTPStatus.NOT_IMPLEMENTED)
+        self.end_headers()
+
     def do_POST(self):
         self.logger.info("Got POST request for %s", self.path)
 
