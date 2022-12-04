@@ -1,11 +1,9 @@
 """
 Implements an HTTP server which logs all incoming requests and echoes information back to the client.
 """
-import os
 from http import HTTPStatus
 
-from jwt_proxy.http_base import ProxyBaseHTTPRequestHandler, run_server
-from jwt_proxy.logger import init_logging
+from jwt_proxy.http_base import ProxyBaseHTTPRequestHandler
 
 
 class EchoRequestHandler(ProxyBaseHTTPRequestHandler):
@@ -21,7 +19,7 @@ class EchoRequestHandler(ProxyBaseHTTPRequestHandler):
         # resp_lines is a list of messages to send back to the client
         resp_lines = ["Path: " + self.path, "Headers:"]
         # Log for debugging purposes, and also include in the echo response
-        for k, v in sorted(self.headers.items()):
+        for k, v in self.headers.items():
             self.logger.info("    %s: %s", k, v)
             resp_lines.append(f"    {k}: {v}")
 
@@ -30,6 +28,7 @@ class EchoRequestHandler(ProxyBaseHTTPRequestHandler):
         if length is None:
             self.logger.error("Missing Content-Length header!")
             self.send_error(HTTPStatus.BAD_REQUEST, "missing length")
+            return
 
         req_content = self.rfile.read(int(length))
         self.logger.info("Got %d bytes in POST body: %r", len(req_content), req_content)

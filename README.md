@@ -24,6 +24,8 @@ docker-compose up
 
 The servers can be configured with variables:
 
+* `PROXY_HTTP_PORT`: The port where the proxy server listens.
+* `JWT_SIGNING_SECRET`: The secret used for signing JWT tokens.
 * `ECHO_HTTP_PORT`: The port where the echo server listens.
 
 They can be overridden when bringing up the containers:

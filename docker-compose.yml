@@ -2,12 +2,27 @@ version: "3.7"
 
 services:
   echo_server:
-    # image: jwt-http-proxy:1
+    image: jwt-http-proxy:1
     build:
       context: .
     entrypoint:
       - /usr/local/bin/python
       - /app/echo_server.py
+    environment:
+      PROXY_HTTP_PORT: 9200
     #network_mode: host  # for debugging
     ports:
       - "${ECHO_HTTP_PORT}:${ECHO_HTTP_PORT}"
+  proxy_server:
+    image: jwt-http-proxy:1
+    build:
+      context: .
+    entrypoint:
+      - /usr/local/bin/python
+      - /app/proxy_server.py
+    environment:
+      ECHO_HTTP_PORT: 9100
+      JWT_SIGNING_SECRET: a9ddbcaba8c0ac1a0a812dc0c2f08514b23f2db0a68343cb8199ebb38a6d91e4ebfb378e22ad39c2d01d0b4ec9c34aa91056862ddace3fbbd6852ee60c36acbf
+    #network_mode: host  # for debugging
+    ports:
+      - "${PROXY_HTTP_PORT:-9100}:${PROXY_HTTP_PORT:-9100}"
