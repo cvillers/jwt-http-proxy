@@ -14,6 +14,7 @@ class EchoRequestHandler(ProxyBaseHTTPRequestHandler):
     server_version = "EchoServer"
 
     def do_POST(self):
+        self.record_request()
         self.logger.info("Got POST request for %s", self.path)
 
         # resp_lines is a list of messages to send back to the client

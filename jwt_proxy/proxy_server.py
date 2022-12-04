@@ -36,6 +36,7 @@ class ProxyRequestHandler(ProxyBaseHTTPRequestHandler):
         self.end_headers()
 
     def do_POST(self):
+        self.record_request()
         self.logger.info("Got POST request for %s", self.path)
 
         # Read headers

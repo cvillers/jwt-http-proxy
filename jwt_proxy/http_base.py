@@ -7,9 +7,28 @@ import socket
 import sys
 import threading
 import time
+from collections import Counter
+from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from math import floor
+from typing import Union
 
 from jwt_proxy.logger import get_logger
+
+_REQUESTS_PROCESSED_METRIC_KEY = "requests_processed"
+
+
+class ProxyHTTPServer(ThreadingHTTPServer):
+    """
+    Override of :class:`ThreadingHTTPServer` which stores global metrics that can be accessed
+    by request handlers, because request handlers are instantiated freshly for each request.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.start_time = time.time()
+        self.metrics_lock = threading.Lock()
+        self.metrics = Counter(_REQUESTS_PROCESSED_METRIC_KEY=0)
 
 
 class ProxyBaseHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -17,9 +36,71 @@ class ProxyBaseHTTPRequestHandler(BaseHTTPRequestHandler):
     Common HTTP request handler shared by both the proxy and the echo server.
     """
 
+    def __init__(self, socket, client, server: ProxyHTTPServer):
+        # Assign instance variables first because the parent constructor will call handler methods
+        self._server = server
+        super(BaseHTTPRequestHandler, self).__init__(socket, client, server)
+
+    def record_request(self) -> None:
+        """
+        Add a metric that a request was processed.
+        """
+        with self._server.metrics_lock:
+            self._server.metrics[_REQUESTS_PROCESSED_METRIC_KEY] += 1
+
+    def do_GET(self):
+        if self.path == "/status":
+            status = HTTPStatus.NOT_FOUND
+            response = b"Not Found"
+        else:
+            status = HTTPStatus.OK
+            now = time.time()
+            started = self.date_time_string(self._server.start_time)
+            uptime = self.format_time_duration(now - self._server.start_time)
+
+            response_lines = [f"Up {uptime} (since {started})"]
+            with self._server.metrics_lock:
+                response_lines.append(
+                    f"{self._server.metrics[_REQUESTS_PROCESSED_METRIC_KEY]} requests processed"
+                )
+            response = "\n".join(response_lines).encode("utf-8")
+
+        self.send_response(status)
+        self.send_header("Content-type", "text/plain; charset=utf-8")
+        self.send_header("Content-Length", str(len(response)))
+        self.end_headers()
+
+        self.wfile.write(response)
+        self.wfile.flush()
+
+    @staticmethod
+    def format_time_duration(duration_secs: Union[int, float]) -> str:
+        """
+        Describe the time as a duration.
+
+        :param duration_secs: The duration as a number of seconds.
+        :return: The duration.
+        """
+        parts = []
+        seconds = floor(duration_secs % 60)
+        minutes = floor((duration_secs % (60 * 60)) / 60)
+        hours = floor(duration_secs / (60 * 60))
+
+        if minutes < 1 and hours < 1:
+            parts.append(f"{int(seconds)} seconds")
+        elif minutes < 60 and hours < 1:
+            parts.append(f"{int(minutes)} minutes")
+            parts.append(f"{int(seconds)} seconds")
+        else:
+            parts.append(f"{int(hours)} hours")
+            parts.append(f"{int(minutes)} minutes")
+            parts.append(f"{int(seconds)} seconds")
+
+        return ", ".join(parts)
+
+    # workarounds for __init__ not being called
     @property
     def logger(self):
-        # workaround for __init__ not being called
         if not hasattr(self, "__log"):
             self.__log = get_logger(type(self))
         return self.__log
@@ -43,9 +124,9 @@ def run_server(handler_cls, port: int):
 
     log.info("Starting server on on 0.0.0.0:%d", port)
 
-    ThreadingHTTPServer.address_family = socket.AddressFamily.AF_INET
+    ProxyHTTPServer.address_family = socket.AddressFamily.AF_INET
 
-    with ThreadingHTTPServer(("0.0.0.0", port), handler_cls) as server:
+    with ProxyHTTPServer(("0.0.0.0", port), handler_cls) as server:
         # Run the server on another thread so that the main thread can handle the shutdown signal.
         # running will be set by the signal handler, and then the main thread will resume and
         # gracefully shut down.
