@@ -19,7 +19,7 @@ class ProxyRequestHandler(ProxyBaseHTTPRequestHandler):
     An HTTP server which adds a signed JWT header to POST requests.
     """
 
-    server_version = "EchoServer"
+    server_version = "JWTProxyServer"
 
     JWT_TOKEN_HEADER = "x-my-jwt"
 
@@ -99,3 +99,11 @@ class ProxyRequestHandler(ProxyBaseHTTPRequestHandler):
 
         self.wfile.write(resp_body)
         self.wfile.flush()
+
+    def send_response(self, code, message=None):
+        """
+        Override of :meth:`BaseHTTPRequestHandler.send_response` which does not send
+        ``Server`` or ``Date`` headers, so that the upstream headers are preserved.
+        """
+        self.log_request(code)
+        self.send_response_only(code, message)
