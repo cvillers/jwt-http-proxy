@@ -39,6 +39,7 @@ class ProxyBaseHTTPRequestHandler(BaseHTTPRequestHandler):
     def __init__(self, socket, client, server: ProxyHTTPServer):
         # Assign instance variables first because the parent constructor will call handler methods
         self._server = server
+        self.logger = get_logger(type(self))
         super(BaseHTTPRequestHandler, self).__init__(socket, client, server)
 
     def record_request(self) -> None:
@@ -98,13 +99,7 @@ class ProxyBaseHTTPRequestHandler(BaseHTTPRequestHandler):
 
         return ", ".join(parts)
 
-    # workarounds for __init__ not being called
-    @property
-    def logger(self):
-        if not hasattr(self, "__log"):
-            self.__log = get_logger(type(self))
-        return self.__log
-
+    # Overrides of the base log functions, to funnel everything through the standard logger
     def log_error(self, format: str, *args) -> None:
         self.logger.error("[%s] %s", self.address_string(), format % args)
 
