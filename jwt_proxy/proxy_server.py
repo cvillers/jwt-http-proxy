@@ -34,7 +34,7 @@ class ProxyRequestHandler(ProxyBaseHTTPRequestHandler):
             headers[name] = value
 
         # Input validation
-        length = self.headers.get("Content-Length")
+        length = headers.get("Content-Length")
         if length is None:
             self.logger.error("Missing Content-Length header!")
             self.send_error(HTTPStatus.BAD_REQUEST, "missing length")
