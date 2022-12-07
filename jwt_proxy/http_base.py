@@ -58,7 +58,7 @@ class ProxyBaseHTTPRequestHandler(BaseHTTPRequestHandler):
             started = self.date_time_string(self._server.start_time)
             uptime = self.format_time_duration(now - self._server.start_time)
 
-            response_lines = [f"Up {uptime} (since {started})"]
+            response_lines = [f"{self.server_version} up {uptime} (since {started})"]
             with self._server.metrics_lock:
                 response_lines.append(
                     f"{self._server.metrics[_REQUESTS_PROCESSED_METRIC_KEY]} requests processed"
