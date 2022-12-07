@@ -1,3 +1,6 @@
+"""
+Logging subsystem helpers.
+"""
 import logging
 from typing import Any, Callable, Union
 

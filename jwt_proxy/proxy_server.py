@@ -57,12 +57,12 @@ class ProxyRequestHandler(ProxyBaseHTTPRequestHandler):
             headers=headers,
         )
 
+        # Read the upstream response
         resp_status = HTTPStatus.OK
         resp_headers = []
         try:
             response: HTTPResponse = urlopen(upstream_request)
 
-            # Read the upstream response
             resp_length = None
             resp_headers.extend(response.getheaders())
             for name, value in resp_headers:
@@ -83,7 +83,7 @@ class ProxyRequestHandler(ProxyBaseHTTPRequestHandler):
             resp_headers.append(("Content-type", "text/plain; charset=utf-8"))
             resp_headers.append(("Content-Length", str(len(resp_body))))
 
-        # Build and send the response
+        # Build and send the response to the client
         self.send_proxy_response(resp_status)
         for name, value in resp_headers:
             self.send_header(name, value)

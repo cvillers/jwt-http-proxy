@@ -1,5 +1,5 @@
 """
-Shared HTTP server implementation.
+Shared HTTP server components.
 """
 
 import signal
@@ -116,7 +116,6 @@ def run_server(handler_cls, port: int):
     """
     Run an HTTP server.
 
-    :param server_cls: The :class:`http.server.HTTPServer` class type.
     :param handler_cls: The :class:`BaseHTTPRequestHandler` class type.
     :param port: The port to listen on.
     """

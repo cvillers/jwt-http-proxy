@@ -37,7 +37,7 @@ def encode_jwt_hs512(
     :param secret: The signing secret.
     :param issued_at: Timestamp (seconds since epoch) that the token was issued at. Pass None to use
                       the current timestamp.
-    :param jwt_id: ID of the claim. Generally should not be overridden; only set this for unit tests.
+    :param jwt_id: ID of the claim. This is meant only for unit tests and should not be explicitly set.
     :return: The signed token.
     """
     header_msg = {
