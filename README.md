@@ -65,12 +65,12 @@ ECHO_HTTP_PORT=12345 docker-compose up
 ## Components
 
 ### Proxy server
-A reverse-proxy server which receives POST requests, appends a JWT token with the username and date, and forwards
-the request to a configurable upstream server.
+A reverse-proxy server which receives POST requests, appends a header containing a JWT token with the current username
+and date, and forwards the request to a configurable upstream server.
 
 ### Echo server
 
-A simple server for demonstrating the proxy operation, which logs information about the request and
+A simple server for demonstrating the functionality of the proxy server, which logs information about the request and
 echoes it back to the client.
 
 ## Development
@@ -91,5 +91,5 @@ poetry run python bin/echo_server.py
 Use Poetry:
 
 ```bash
-poetry run python -m unittest
+poetry run python -m unittest discover
 ```
