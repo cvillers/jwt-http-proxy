@@ -1,7 +1,5 @@
 """
 Unit tests for :mod:`jwt_proxy.proxy_server`.
-
-Uses a standard library base test case, to set up the mock server.
 """
 
 import os
@@ -21,7 +19,7 @@ class UTProxyRequestHandler(ProxyRequestHandler):
     """
     Unittest-safe wrapper for :class:`ProxyRequestHandler` which provides the required constructor arguments.
 
-    Based on the ``SocketlessRequestHandler`` in the stdlib tests (Lib/test/test_httpservers.py).
+    Based on the ``SocketlessRequestHandler`` in the stdlib test suite (Lib/test/test_httpservers.py).
     """
 
     def __init__(self):

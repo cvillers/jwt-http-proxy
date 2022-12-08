@@ -2,10 +2,50 @@
 Common utilities for unit tests.
 """
 from http import HTTPStatus
-from http.client import HTTPResponse
-from test.test_httplib import FakeSocket
+from http.client import HTTPResponse, UnimplementedFileMode
+from io import BytesIO
 from typing import Callable, Dict, List, Optional, Union
 from urllib.request import Request
+
+
+class FakeSocket:
+    """
+    A mock socket which uses in-memory buffers.
+
+    Copied from the stdlib test suite (Lib/test/test_httplib.py).
+    """
+
+    def __init__(self, text, fileclass=BytesIO, host=None, port=None):
+        if isinstance(text, str):
+            text = text.encode("ascii")
+        self.text = text
+        self.fileclass = fileclass
+        self.data = b""
+        self.sendall_calls = 0
+        self.file_closed = False
+        self.host = host
+        self.port = port
+
+    def sendall(self, data):
+        self.sendall_calls += 1
+        self.data += data
+
+    def makefile(self, mode, bufsize=None):
+        if mode != "r" and mode != "rb":
+            raise UnimplementedFileMode()
+        # keep the file around so we can check how much was read from it
+        self.file = self.fileclass(self.text)
+        self.file.close = self.file_close  # nerf close ()
+        return self.file
+
+    def file_close(self):
+        self.file_closed = True
+
+    def close(self):
+        pass
+
+    def setsockopt(self, level, optname, value):
+        pass
 
 
 def create_http_response(
