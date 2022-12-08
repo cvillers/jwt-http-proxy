@@ -10,14 +10,15 @@ Dependencies:
 ## Deployment and Usage
 
 The servers run in Docker. The `Dockerfile` builds an image which is used to run both, and
-the `docker-compose.yml` uses that image to run both services.
+the `docker-compose.yml` uses that image to run both services. The `Makefile` wraps the necessary commands.
 
 ### Usage
 
-Start the servers with:
+Start the servers with this command, which will build the images first. You can optionally override the proxy's
+HTTP port with the HTTP_PORT variable.
 
 ```bash
-$ docker-compose up
+$ make run HTTP_PORT=8888
 ```
 
 Then, generate a POST body if desired, and send requests to the proxy server, which listens on port 9100 by default.
@@ -51,7 +52,7 @@ request body
 
 The servers can be configured with variables:
 
-* `PROXY_HTTP_PORT`: The port where the proxy server listens.
+* `PROXY_HTTP_PORT`: The port where the proxy server listens. Also overridable in the Makefile as `HTTP_PORT`.
 * `UPSTREAM_SERVER`: The server (`host[:port]` or `http[s]://host`) where the proxy sends upstream requests. Sub-paths are not supported.
 * `JWT_SIGNING_SECRET`: The secret used for signing JWT tokens.
 * `ECHO_HTTP_PORT`: The port where the echo server listens.
@@ -59,7 +60,7 @@ The servers can be configured with variables:
 They can be overridden when bringing up the containers:
 
 ```bash
-ECHO_HTTP_PORT=12345 docker-compose up
+make run HTTP_PORT=8888 ECHO_HTTP_PORT=12345
 ```
 
 ## Components
@@ -88,8 +89,8 @@ poetry run python bin/echo_server.py
 
 ### Running tests
 
-Use Poetry:
+Use the Makefile:
 
 ```bash
-poetry run python -m unittest discover
+make test
 ```

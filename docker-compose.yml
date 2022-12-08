@@ -10,7 +10,7 @@ services:
       - /app/echo_server.py
     environment:
       # Listening port
-      ECHO_HTTP_PORT: 9200
+      ECHO_HTTP_PORT: "${ECHO_HTTP_PORT:-9200}"
     ports:
       - "${ECHO_HTTP_PORT:-9200}:${ECHO_HTTP_PORT:-9200}"
   proxy:
@@ -21,8 +21,8 @@ services:
       - /usr/local/bin/python
       - /app/proxy_server.py
     environment:
-      # Listening port
-      PROXY_HTTP_PORT: 9100
+      # Listening port, can be overridden
+      PROXY_HTTP_PORT: ${PROXY_HTTP_PORT:-9100}
       # Upstream server, as server[:port], can also include a protocol as https://example.com
       UPSTREAM_SERVER: "echo:${ECHO_HTTP_PORT:-9200}"
       # Signing secret
