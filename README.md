@@ -45,6 +45,20 @@ Body (12 bytes):
 request body
 ```
 
+### Status
+
+Issue a GET to either server on the `/status` endpoint to receive some statistics about the current instance:
+
+```bash
+$ curl http://localhost:9100/status
+JWTProxyServer up 38 seconds (since Thu, 08 Dec 2022 06:22:51 GMT)
+7 requests processed
+
+$ curl http://localhost:9200/status
+EchoServer up 57 seconds (since Thu, 08 Dec 2022 06:22:51 GMT)
+7 requests processed
+```
+
 ### Environment variables
 
 The servers can be configured with variables:
