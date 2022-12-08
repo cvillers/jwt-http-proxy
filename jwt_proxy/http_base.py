@@ -50,7 +50,7 @@ class ProxyBaseHTTPRequestHandler(BaseHTTPRequestHandler):
             self._server.metrics[_REQUESTS_PROCESSED_METRIC_KEY] += 1
 
     def do_GET(self):
-        if self.path == "/status":
+        if self.path != "/status":
             status = HTTPStatus.NOT_FOUND
             response = b"Not Found"
         else:
