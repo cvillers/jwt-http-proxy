@@ -11,7 +11,7 @@ from unittest import mock
 from urllib.request import Request
 
 from jwt_proxy.proxy_server import ProxyRequestHandler
-from tests.common import create_http_response, urlopen_patch, urlopen_patch_invoke
+from tests.common import create_http_response, urlopen_mock
 from tests.test_jwt import SECRET
 
 
@@ -37,17 +37,17 @@ class TestProxyServerRequestHandler(unittest.TestCase):
     Tests for :class:`ProxyRequestHandler`. Based on ``BaseHTTPRequestHandlerTestCase``.
     """
 
-    HTTPResponseMatch = re.compile(b"HTTP/1.[0-9]+ 200 OK")
-
     def setUp(self) -> None:
         self.handler = UTProxyRequestHandler()
         self.handler.client_address = ("127.0.0.1", 2345)
-        self.urlopen_mock = mock.patch("jwt_proxy.proxy_server.urlopen", urlopen_patch_invoke)
+        self.urlopen_mock = mock.patch("jwt_proxy.proxy_server.urlopen", urlopen_mock.invoke)
         self.urlopen_mock.start()
 
     def tearDown(self) -> None:
-        urlopen_patch.clean()
+        urlopen_mock.clean()
         self.urlopen_mock.stop()
+
+    # The below three methods are copied from BaseHTTPRequestHandlerTestCase.
 
     def send_typical_request(self, message):
         input = BytesIO(message)
@@ -62,11 +62,16 @@ class TestProxyServerRequestHandler(unittest.TestCase):
         for fieldName in b"Server: ", b"Date: ", b"Content-Type: ":
             self.assertEqual(sum(h.startswith(fieldName) for h in headers), 1)
 
+    HTTPResponseMatch = re.compile(b"HTTP/1.[0-9]+ 200 OK")
+
     def verify_http_server_response(self, response):
         match = self.HTTPResponseMatch.search(response)
         self.assertIsNotNone(match)
 
     def test_build_upstream_url(self):
+        """
+        Tests for constructing the upstream target URL.
+        """
         # upstream url, path, expected result
         cases = [
             ("echo:9100", "/", "http://echo:9100/"),
@@ -86,7 +91,10 @@ class TestProxyServerRequestHandler(unittest.TestCase):
         """
 
         def _validator(request: Request):
-            # Check that it's structurally valid - we don't have a way to validate the actual signature
+            """
+            Handler for the test URL. Checks that the request is structurally valid, because
+            we don't have a way to validate the actual signature.
+            """
             token = request.get_header("X-my-jwt")
             self.assertIsNotNone(token, "x-my-jwt header is missing")
             self.assertRegex(
@@ -96,16 +104,20 @@ class TestProxyServerRequestHandler(unittest.TestCase):
             )
             return create_http_response(HTTPStatus.OK, content=b"Example response")
 
-        urlopen_patch.add_handler("http://test-upstream:1234/foo", _validator)
+        # Add our handler for the test URL
+        urlopen_mock.add_handler("http://test-upstream:1234/foo", _validator)
 
+        # Environment configuration
         os.environ["UPSTREAM_SERVER"] = "test-upstream:1234"
         os.environ["JWT_SIGNING_SECRET"] = SECRET.decode("ascii")
 
+        # Request input
         req_body = b"Input body"
         req_lines = [
             "POST /foo HTTP/1.0".encode("ascii"),
             "Content-Type: application/x-www-form-urlencoded".encode("ascii"),
             f"Content-Length: {len(req_body)}".encode("ascii"),
         ]
+        # Issue the request and validate the response
         response = self.send_typical_request(b"\r\n".join(req_lines) + b"\r\n\r\n" + req_body)
         self.verify_http_server_response(response[0])

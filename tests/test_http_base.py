@@ -14,6 +14,9 @@ class TestRequestHandler(unittest.TestCase):
     """
 
     def test_format_time_duration(self):
+        """
+        Test the relative time formatting used in the status page.
+        """
         cases = {
             43.0: "43 seconds",
             43.7: "43 seconds",

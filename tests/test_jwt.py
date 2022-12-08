@@ -11,6 +11,9 @@ SECRET = b"be209f0400598c8c2e9fb4447d334c7e253e76b97e454f72bce0b137e617e64396bae
 
 class TestJWT(unittest.TestCase):
     def test_jwt_encode(self):
+        """
+        Test JWT encoding.
+        """
         payload = {
             "claim1": "foo",
             "claim2": "bar",

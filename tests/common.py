@@ -80,14 +80,26 @@ def create_http_response(
     return resp
 
 
-class URLOpenPatch:
+class URLOpenMock:
+    """
+    A simple mock facility for :func:`urllib.request.urlopen`, inspired by the ``requests-mock`` package.
+
+    Callers can optionally add handlers to validate specific URLs by calling :meth:`add_handler`, and can
+    inspect all issued requests in the :attr:`requests` list.
+
+    A global instance of this class is available in :attr:`urlopen_mock`. Unit tests should patch
+    :func:`urllib.request.urlopen` using this class's instance method :func:`invoke`.
+    """
+
     def __init__(self):
         self.requests: List = []
         self.handlers: Dict[str, Callable[[Request], ...]] = {}
 
     def clean(self) -> None:
         """
-        Clean up this patch instance.
+        Remove the buffered requests and clear registered handlers.
+
+        This should be used to reset the mocker between unit tests, by calling this in the ``tearDown()`` method.
         """
         self.requests.clear()
         self.handlers.clear()
@@ -122,12 +134,4 @@ class URLOpenPatch:
         self.handlers[url] = function
 
 
-urlopen_patch = URLOpenPatch()
-
-
-def urlopen_patch_invoke(url, data=None, *args, **kwargs) -> HTTPResponse:
-    """
-    Mock for :func:`urllib.request.urlopen` which records requests and can
-    return specified responses.
-    """
-    return urlopen_patch.invoke(url, data, *args, **kwargs)
+urlopen_mock = URLOpenMock()
