@@ -1,10 +1,11 @@
 .PHONY: build run stop test
 
+PYTHON?=python
 HTTP_PORT?=9100
 
 all: run
 
-build: bin/*.py jwt_proxy/*.py
+build: *.py jwt_proxy/*.py
 	docker compose build
 
 run: build
@@ -14,4 +15,4 @@ down:
 	docker compose down
 
 test:
-	poetry run python -m unittest discover
+	$(PYTHON) -m unittest discover

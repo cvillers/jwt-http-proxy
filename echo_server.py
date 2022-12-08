@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Entry point for the echo server.
 
 import os

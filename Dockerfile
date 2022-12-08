@@ -6,5 +6,5 @@ ENV APP_DIR=/app
 RUN mkdir $APP_DIR
 WORKDIR $APP_DIR
 
-COPY bin/*.py $APP_DIR/
+COPY *.py $APP_DIR/
 ADD jwt_proxy/ $APP_DIR/jwt_proxy/

@@ -2,10 +2,7 @@
 
 This repository implements an HTTP reverse proxy which adds a JWT token to request headers.
 
-Dependencies:
-
-* Python 3.10 (expected to work on 3.8+, not tested)
-* [Poetry](https://python-poetry.org/) for venv management
+Tested on Python 3.10, expected to work on Python 3.8+.
 
 ## Deployment and Usage
 
@@ -76,21 +73,22 @@ echoes it back to the client.
 
 ## Development
 
-This project uses [Poetry](https://python-poetry.org/) for managing virtualenvs.
+This project has no external dependencies. The _black_ and _isort_ formatters are pinned in `requirements-dev.txt`
+and configured in `pyproject.toml`.
 
 ### Local invocation
 
 The servers can be run directly via entry point scripts:
 
 ```bash
-poetry run python bin/proxy_server.py
-poetry run python bin/echo_server.py
+./proxy_server.py
+./echo_server.py
 ```
 
 ### Running tests
 
-Use the Makefile:
+Use the Makefile; the Python interpreter can be overridden if necessary:
 
 ```bash
-make test
+make test PYTHON=python3.10
 ```
